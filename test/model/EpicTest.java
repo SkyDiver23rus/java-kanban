@@ -1,5 +1,7 @@
 package model;
+
 import org.junit.jupiter.api.Test;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 public class EpicTest {
@@ -18,6 +20,7 @@ public class EpicTest {
 
         assertNotEquals(epic1, epic2, "Эпики с разными id не должны быть равны.");
     }
+
     @Test
     void testEpicNotNull() {
 
