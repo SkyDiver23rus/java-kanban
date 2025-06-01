@@ -137,7 +137,7 @@ public class InMemoryTaskManager implements TaskManager {
         for (Epic epic : epics.values()) {
             epic.removeAllSubtask();
         }
-    }//удаляем все сабтаски
+    } //удаляем все subtasks
 
     @Override
     public void removeAllEpic() {
@@ -149,7 +149,7 @@ public class InMemoryTaskManager implements TaskManager {
         }
         epics.clear();
         subtasks.clear();
-    }//и эпики тоже
+    } //и эпики тоже
 
     @Override
     public List<Task> getHistory() {
