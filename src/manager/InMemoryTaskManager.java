@@ -89,8 +89,12 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void removeTask(int id) {
-        tasks.remove(id);
-    }
+        if (tasks.containsKey(id)) {
+            tasks.remove(id);
+            historyManager.remove(id);
+        }
+    } //Добавил удаление из истории
+
 
     @Override
     public void removeSubtask(int id) {
@@ -100,34 +104,52 @@ public class InMemoryTaskManager implements TaskManager {
             if (epic != null) {
                 epic.removeSubtask(id);
             }
+            historyManager.remove(id);
         }
-    }
+    } //тут тоже
 
     @Override
     public void removeEpic(int id) {
         Epic epic = epics.remove(id);
         if (epic != null) {
-            for (int subtaskId : epic.getSubtaskIds()) {
+            for (int subtaskId : new ArrayList<>(epic.getSubtaskIds())) {
                 subtasks.remove(subtaskId);
+                historyManager.remove(subtaskId);
             }
+            historyManager.remove(id);
         }
-    }
+    }  // удаляем все подзадачи эпика из истории и коллекции подзадач
 
     @Override
     public void removeAllTasks() {
+        for (int id : tasks.keySet()) {
+            historyManager.remove(id);
+        }
         tasks.clear();
-    }
+    } //проходим циклом и удаляем все таски
 
     @Override
     public void removeAllSubTasks() {
+        for (int id : subtasks.keySet()) {
+            historyManager.remove(id);
+        }
         subtasks.clear();
-    }
+        for (Epic epic : epics.values()) {
+            epic.removeAllSubtask();
+        }
+    }//удаляем все сабтаски
 
     @Override
     public void removeAllEpic() {
+        for (Epic epic : epics.values()) {
+            historyManager.remove(epic.getId());
+            for (int subtaskId : new ArrayList<>(epic.getSubtaskIds())) {
+                historyManager.remove(subtaskId);
+            }
+        }
         epics.clear();
         subtasks.clear();
-    }
+    }//и эпики тоже
 
     @Override
     public List<Task> getHistory() {
