@@ -7,31 +7,31 @@ import static org.junit.jupiter.api.Assertions.*;
 public class SubtaskTest {
 
     @Test
-    public void testSubtask() {
-        Subtask subtask1 = new Subtask("Сабтаск 1", "Описание 1", 100);
-        Subtask subtask2 = new Subtask("Сабтаск 2", "Описание 2", 100);
+    public void testSubtaskEqualsAndHashCode() {
+        Subtask subtask1 = new Subtask("Сабтаск 1", "Описание 1", "NEW", 100);
+        Subtask subtask2 = new Subtask("Сабтаск 2", "Описание 2", "IN_PROGRESS", 100);
 
         subtask1.setId(1);
         subtask2.setId(1);
 
-        assertEquals(subtask1, subtask2);
-        assertEquals(subtask1.hashCode(), subtask2.hashCode());
+        assertEquals(subtask1, subtask2, "Подзадачи с одинаковым id должны быть равны.");
+        assertEquals(subtask1.hashCode(), subtask2.hashCode(), "Хэшкоды подзадач с одинаковым id должны совпадать.");
     }
 
     @Test
-    public void testSubtaskId() {
-        Subtask subtask1 = new Subtask("Сабтаск 1", "Описание 1", 100);
-        Subtask subtask2 = new Subtask("Сабтаск 2", "Описание 2", 101);
+    public void testSubtaskNotEquals() {
+        Subtask subtask1 = new Subtask("Сабтаск 1", "Описание 1", "NEW", 100);
+        Subtask subtask2 = new Subtask("Сабтаск 2", "Описание 2", "NEW", 101);
 
         subtask1.setId(1);
         subtask2.setId(2);
 
-        assertNotEquals(subtask1, subtask2);
+        assertNotEquals(subtask1, subtask2, "Подзадачи с разными id не должны быть равны.");
     }
 
     @Test
     public void testSettersAndGetters() {
-        Subtask subtask = new Subtask("Название Сабтаска", "Описание", 100);
+        Subtask subtask = new Subtask("Название Сабтаска", "Описание", "IN_PROGRESS", 100);
 
         subtask.setId(456);
         subtask.setStatus(Status.DONE);
