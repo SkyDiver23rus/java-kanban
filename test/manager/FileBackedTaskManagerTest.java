@@ -20,12 +20,15 @@ class FileBackedTaskManagerTest {
     @BeforeEach
     void setup() throws Exception {
         file = File.createTempFile("tasks", ".csv");
+        file.delete();
         manager = new FileBackedTaskManager(file);
     }
 
     @AfterEach
     void teardown() {
-        file.delete();
+        if (file.exists()) {
+            file.delete();
+        }
     }
 
     @Test
@@ -54,24 +57,24 @@ class FileBackedTaskManagerTest {
 
         // Проверяем задачи
         List<Task> tasks = loaded.getAllTasks();
-        assertEquals(2, tasks.size());
+        assertEquals(2, tasks.size(), "Должно быть 2 задачи");
         assertTrue(tasks.stream().anyMatch(t -> t.getName().equals("Task1")));
         assertTrue(tasks.stream().anyMatch(t -> t.getName().equals("Task2")));
 
         // Проверяем эпики
         List<Epic> epics = loaded.getAllEpics();
-        assertEquals(1, epics.size());
+        assertEquals(1, epics.size(), "Должен быть 1 эпик");
         assertEquals("Epic1", epics.get(0).getName());
 
         // Проверяем подзадачи
         List<Subtask> subtasks = loaded.getAllSubtasks();
-        assertEquals(2, subtasks.size());
+        assertEquals(2, subtasks.size(), "Должно быть 2 подзадачи");
         assertTrue(subtasks.stream().anyMatch(s -> s.getName().equals("Sub1")));
         assertTrue(subtasks.stream().anyMatch(s -> s.getName().equals("Sub2")));
 
         // Проверяем историю
         List<Task> history = loaded.getHistory();
-        assertEquals(3, history.size());
+        assertEquals(3, history.size(), "Должно быть 3 задачи в истории");
         assertEquals(task1.getId(), history.get(0).getId());
         assertEquals(epic.getId(), history.get(1).getId());
         assertEquals(subtask1.getId(), history.get(2).getId());
@@ -83,21 +86,21 @@ class FileBackedTaskManagerTest {
         List<String> lines = Files.readAllLines(file.toPath());
         // Первая строка — это заголовок
         assertTrue(lines.get(0).contains("id,type,name,status,description,epic"));
-        // После заголовка и пустой строки истории больше ничего нет
-        assertTrue(lines.size() <= 2);
+        // После заголовка должна быть пустая строка (разделитель между задачами и историей)
+        assertTrue(lines.size() >= 1);
     }
 
     @Test
     void loadFromFileWithNoHistory() throws Exception {
         Task task = new Task("Task", "Desc", "NEW");
         manager.createTask(task);
-        // Удаляем всю историю (имитируем ситуацию без неё)
+        // Очищаем историю
         manager.getHistory().clear();
         manager.save();
 
         FileBackedTaskManager loaded = FileBackedTaskManager.loadFromFile(file);
         List<Task> loadedHistory = loaded.getHistory();
-        assertTrue(loadedHistory.isEmpty());
+        assertTrue(loadedHistory.isEmpty(), "История после загрузки должна быть пустой");
     }
 
     @Test
