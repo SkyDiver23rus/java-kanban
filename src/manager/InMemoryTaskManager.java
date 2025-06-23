@@ -171,5 +171,53 @@ public class InMemoryTaskManager implements TaskManager {
         }
         return subtasksByEpic;
     }
+    @Override
+    public void updateTask(Task task) {
+        if (task == null || !tasks.containsKey(task.getId())) return;
+        tasks.put(task.getId(), task);
+    }
 
+    @Override
+    public void updateSubtask(Subtask subtask) {
+        if (subtask == null || !subtasks.containsKey(subtask.getId())) return;
+        subtasks.put(subtask.getId(), subtask);
+        updateEpicStatus(subtask.getEpicId());
+    }
+
+    @Override
+    public void updateEpic(Epic epic) {
+        if (epic == null || !epics.containsKey(epic.getId())) return;
+        epics.put(epic.getId(), epic);
+        updateEpicStatus(epic.getId());
+    }
+
+    private void updateEpicStatus(int epicId) {
+        Epic epic = epics.get(epicId);
+        if (epic == null) return;
+        List<Integer> subtaskIds = epic.getSubtaskIds();
+        if (subtaskIds.isEmpty()) {
+            epic.setStatus(model.Status.NEW);
+            return;
+        }
+        boolean allNew = true;
+        boolean allDone = true;
+        for (int subtaskId : subtaskIds) {
+            Subtask subtask = subtasks.get(subtaskId);
+            if (subtask != null) {
+                if (!subtask.getStatus().equals(model.Status.DONE)) {
+                    allDone = false;
+                }
+                if (!subtask.getStatus().equals(model.Status.NEW)) {
+                    allNew = false;
+                }
+            }
+        }
+        if (allDone) {
+            epic.setStatus(model.Status.DONE);
+        } else if (allNew) {
+            epic.setStatus(model.Status.NEW);
+        } else {
+            epic.setStatus(model.Status.IN_PROGRESS);
+        }
+    }
 }
