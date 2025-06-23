@@ -29,6 +29,11 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         this(new File("tasks.csv"));
     }
 
+    // Статический фабричный метод для загрузки менеджера из файла
+    public static FileBackedTaskManager loadFromFile(File file) {
+        return new FileBackedTaskManager(file);
+    }
+
     // --- Сохранение всех задач и истории ---
     protected void save() {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
@@ -220,8 +225,8 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         manager.getEpicById(epic1.getId());
         manager.getSubtaskById(subtask1.getId());
 
-        // загрузка менеджера из того же файла
-        FileBackedTaskManager loaded = new FileBackedTaskManager(file);
+        // загрузка менеджера из того же файла через статический метод
+        FileBackedTaskManager loaded = FileBackedTaskManager.loadFromFile(file);
 
         // проверка, что все задачи, эпики, подзадачи восстановились корректно
         System.out.println("--- Проверка восстановления из файла ---");
