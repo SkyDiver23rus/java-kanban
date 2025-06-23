@@ -221,7 +221,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         manager.getSubtaskById(subtask1.getId());
 
         // загрузка менеджера из того же файла
-        FileBackedTaskManager loaded = new FileBackedTaskManager();
+        FileBackedTaskManager loaded = new FileBackedTaskManager(file);
 
         // проверка, что все задачи, эпики, подзадачи восстановились корректно
         System.out.println("--- Проверка восстановления из файла ---");
