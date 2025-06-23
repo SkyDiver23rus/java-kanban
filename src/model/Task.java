@@ -12,9 +12,11 @@ public class Task {
         this.title = title;
         this.description = description;
     }
+
     public TaskType getType() {
         return TaskType.TASK;
     }
+
     public int getId() {
         return id;
     }
