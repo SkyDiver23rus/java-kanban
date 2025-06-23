@@ -171,6 +171,7 @@ public class InMemoryTaskManager implements TaskManager {
         }
         return subtasksByEpic;
     }
+
     @Override
     public void updateTask(Task task) {
         if (task == null || !tasks.containsKey(task.getId())) return;
