@@ -23,7 +23,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     public FileBackedTaskManager(File file) {
         this.file = file;
-        loadFromFile();
+
     }
 
     public FileBackedTaskManager() {
@@ -39,12 +39,10 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
             while ((line = reader.readLine()) != null && !line.isBlank()) {
                 Task task = CSVTaskConverter.fromString(line);
-                if (task != null) {
-                    switch (task.getType()) {
-                        case TASK -> manager.tasks.put(task.getId(), task);
-                        case EPIC -> manager.epics.put(task.getId(), (Epic) task);
-                        case SUBTASK -> manager.subtasks.put(task.getId(), (Subtask) task);
-                    }
+                switch (task.getType()) {
+                    case TASK -> manager.tasks.put(task.getId(), task);
+                    case EPIC -> manager.epics.put(task.getId(), (Epic) task);
+                    case SUBTASK -> manager.subtasks.put(task.getId(), (Subtask) task);
                 }
             }
 
