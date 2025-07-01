@@ -3,7 +3,9 @@ package manager;
 import model.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
 import static org.junit.jupiter.api.Assertions.*;
+
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -30,10 +32,15 @@ public abstract class TaskManagerTest<T extends TaskManager> {
         return new Epic("epic", "desc");
     }
 
-    protected Subtask generateSubtask(int epicId, String status) {
-        Subtask subtask = new Subtask("sub", "desc", status, epicId);
+    private static int subtaskCounter = 0;
+
+    private Subtask generateSubtask(int epicId, String status) {
+
+        LocalDateTime start = LocalDateTime.of(2023, 1, 1, 10, 0).plusMinutes(subtaskCounter * 40);
+        Subtask subtask = new Subtask("Sub" + subtaskCounter, "Desc" + subtaskCounter, status, epicId);
+        subtask.setStartTime(start);
         subtask.setDuration(Duration.ofMinutes(30));
-        subtask.setStartTime(LocalDateTime.now());
+        subtaskCounter++;
         return subtask;
     }
 
