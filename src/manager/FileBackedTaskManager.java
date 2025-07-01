@@ -3,19 +3,15 @@ package manager;
 import model.Task;
 import model.Epic;
 import model.Subtask;
-import model.TaskType;
 
 import java.io.BufferedWriter;
 import java.io.BufferedReader;
 import java.io.FileWriter;
 import java.io.FileReader;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
+
 import java.util.List;
-import java.util.Map;
 
 
 public class FileBackedTaskManager extends InMemoryTaskManager {
@@ -33,9 +29,9 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     public static FileBackedTaskManager loadFromFile(File file) {
         FileBackedTaskManager manager = new FileBackedTaskManager(file);
-
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-            String line = reader.readLine();
+            reader.readLine();
+            String line;
 
             while ((line = reader.readLine()) != null && !line.isBlank()) {
                 Task task = CSVTaskConverter.fromString(line);
@@ -49,19 +45,16 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
             String historyLine = reader.readLine();
             if (historyLine != null && !historyLine.isBlank()) {
                 for (String idStr : historyLine.split(",")) {
-                    if (!idStr.isBlank()) {
-                        int id = Integer.parseInt(idStr.trim());
-                        Task task = manager.tasks.get(id);
-                        if (task == null) task = manager.epics.get(id);
-                        if (task == null) task = manager.subtasks.get(id);
-                        if (task != null) manager.historyManager.add(task);
-                    }
+                    int id = Integer.parseInt(idStr.trim());
+                    Task task = manager.tasks.get(id);
+                    if (task == null) task = manager.epics.get(id);
+                    if (task == null) task = manager.subtasks.get(id);
+                    if (task != null) manager.historyManager.add(task);
                 }
             }
         } catch (IOException e) {
             throw new ManagerSaveException("Ошибка при загрузке задач", e);
         }
-
         return manager;
     }
 
@@ -88,61 +81,6 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         }
     }
 
-    //  Загрузка из файла
-    protected void loadFromFile() {
-        tasks.clear();
-        epics.clear();
-        subtasks.clear();
-        historyManager.clear();
-        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-            reader.readLine();
-            String line;
-            List<String> taskLines = new ArrayList<>();
-            while ((line = reader.readLine()) != null && !line.isEmpty()) {
-                taskLines.add(line);
-            }
-            Map<Integer, Task> allTasks = new HashMap<>();
-            for (String taskLine : taskLines) {
-                Task task = CSVTaskConverter.fromString(taskLine);
-                int id = task.getId();
-                if (task.getType() == TaskType.TASK) {
-                    tasks.put(id, task);
-                    allTasks.put(id, task);
-                } else if (task.getType() == TaskType.EPIC) {
-                    epics.put(id, (Epic) task);
-                    allTasks.put(id, task);
-                } else if (task.getType() == TaskType.SUBTASK) {
-                    subtasks.put(id, (Subtask) task);
-                    allTasks.put(id, task);
-                }
-                idCounter = Math.max(idCounter, id + 1);
-            }
-
-            for (Epic epic : epics.values()) {
-                updateEpicStatus(epic.getId());
-                updateEpicFields(epic.getId());
-            }
-
-            // читаем историю
-            String historyLine = reader.readLine();
-            if (historyLine != null && !historyLine.isEmpty()) {
-                for (String idStr : historyLine.split(",")) {
-                    int id = Integer.parseInt(idStr);
-                    if (tasks.containsKey(id)) {
-                        historyManager.add(tasks.get(id));
-                    } else if (epics.containsKey(id)) {
-                        historyManager.add(epics.get(id));
-                    } else if (subtasks.containsKey(id)) {
-                        historyManager.add(subtasks.get(id));
-                    }
-                }
-            }
-        } catch (FileNotFoundException e) {
-            System.out.println("Файл не найден.");
-        } catch (IOException e) {
-            throw new ManagerSaveException("Ошибка при загрузке задач", e);
-        }
-    }
 
     //  Преобразование истории к строке
     public static String historyToString(HistoryManager manager) {
