@@ -23,8 +23,22 @@ public class InMemoryTaskManager implements TaskManager {
         return idCounter++;
     }
 
+    private void checkTaskIntersection(Task newTask) {
+        if (newTask.getStartTime() == null || newTask.getEndTime() == null) return;
+        for (Task task : prioritizedTasks) {
+            if (task.getId() == newTask.getId()) continue;
+            if (task.getStartTime() == null || task.getEndTime() == null) continue;
+            boolean overlaps = !(newTask.getEndTime().isBefore(task.getStartTime()) ||
+                    newTask.getStartTime().isAfter(task.getEndTime()));
+            if (overlaps) {
+                throw new IllegalArgumentException("Интервал выполнения задачи пересекается с другой задачей");
+            }
+        }
+    }
+
     @Override
     public Task createTask(Task task) {
+        checkTaskIntersection(task);
         task.setId(generateNextId());
         tasks.put(task.getId(), task);
         prioritizedTasks.add(task); // добавляем в приоритетные задачи
@@ -34,6 +48,7 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public Subtask createSubtask(Subtask subtask) {
+        checkTaskIntersection(subtask);
         Epic epic = epics.get(subtask.getEpicId());
         if (epic != null) {
             subtask.setId(generateNextId());
@@ -49,6 +64,7 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public Epic createEpic(Epic epic) {
+        checkTaskIntersection(epic);
         epic.setId(generateNextId());
         epics.put(epic.getId(), epic);
         return epic;

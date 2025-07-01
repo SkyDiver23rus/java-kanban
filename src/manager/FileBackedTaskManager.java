@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+
 public class FileBackedTaskManager extends InMemoryTaskManager {
     protected final File file;
 
@@ -29,12 +30,13 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         this(new File("tasks.csv"));
     }
 
-    // Статический фабричный метод для загрузки менеджера из файла
+
     public static FileBackedTaskManager loadFromFile(File file) {
-        return new FileBackedTaskManager(file);
+        FileBackedTaskManager manager = new FileBackedTaskManager(file);
+        return manager;
     }
 
-    // --- Сохранение всех задач и истории ---
+    // Сохранение всех задач и истории
     protected void save() {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
             writer.write("id,type,name,status,description,epic\n");
@@ -57,14 +59,14 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         }
     }
 
-    // --- Загрузка из файла ---
+    //  Загрузка из файла
     protected void loadFromFile() {
         tasks.clear();
         epics.clear();
         subtasks.clear();
-        // Очистка истории у HistoryManager
+        historyManager.clear();
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-            reader.readLine(); // пропускаем заголовок
+            reader.readLine();
             String line;
             List<String> taskLines = new ArrayList<>();
             while ((line = reader.readLine()) != null && !line.isEmpty()) {
@@ -89,7 +91,9 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
             for (Epic epic : epics.values()) {
                 updateEpicStatus(epic.getId());
+                updateEpicFields(epic.getId());
             }
+
             // читаем историю
             String historyLine = reader.readLine();
             if (historyLine != null && !historyLine.isEmpty()) {
@@ -105,13 +109,13 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                 }
             }
         } catch (FileNotFoundException e) {
-            // новый файл — пропускаем
+
         } catch (IOException e) {
             throw new ManagerSaveException("Ошибка при загрузке задач", e);
         }
     }
 
-    // --- Преобразование истории к строке ---
+    //  Преобразование истории к строке
     public static String historyToString(HistoryManager manager) {
         List<Task> history = manager.getHistory();
         StringBuilder sb = new StringBuilder();
@@ -124,7 +128,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         return sb.toString();
     }
 
-    // --- Переопределение методов для автосохранения ---
+    //  Переопределение методов для автосохранения
     @Override
     public Task createTask(Task task) {
         Task t = super.createTask(task);
