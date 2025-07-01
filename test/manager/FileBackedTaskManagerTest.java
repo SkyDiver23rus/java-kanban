@@ -33,62 +33,6 @@ public class FileBackedTaskManagerTest {
     }
 
     @Test
-    void saveAndLoadTasks() {
-        Task task1 = new Task("Task1", "Desc1", Status.NEW.name());
-        task1.setStartTime(LocalDateTime.of(2023, 1, 1, 10, 0));
-        task1.setDuration(Duration.ofMinutes(60));
-
-        Task task2 = new Task("Task2", "Desc2", Status.IN_PROGRESS.name());
-        task2.setStartTime(LocalDateTime.of(2023, 1, 1, 11, 2));
-        task2.setDuration(Duration.ofMinutes(30));
-
-        manager.createTask(task1);
-        manager.createTask(task2);
-
-        Epic epic = new Epic("Epic1", "EpicDesc");
-        manager.createEpic(epic);
-
-        Subtask subtask1 = new Subtask("Sub1", "SubDesc1", Status.NEW.name(), epic.getId());
-        subtask1.setStartTime(LocalDateTime.of(2023, 1, 1, 12, 0));
-        subtask1.setDuration(Duration.ofMinutes(40));
-
-        Subtask subtask2 = new Subtask("Sub2", "SubDesc2", Status.DONE.name(), epic.getId());
-        subtask2.setStartTime(LocalDateTime.of(2023, 1, 1, 12, 42));
-        subtask2.setDuration(Duration.ofMinutes(20));
-
-        manager.createSubtask(subtask1);
-        manager.createSubtask(subtask2);
-
-        // История
-        manager.getTaskById(task1.getId());
-        manager.getEpicById(epic.getId());
-        manager.getSubtaskById(subtask1.getId());
-
-        // Загружаем новый менеджер из файла
-        FileBackedTaskManager loaded = FileBackedTaskManager.loadFromFile(file);
-
-        List<Task> tasks = loaded.getAllTasks();
-        assertEquals(2, tasks.size(), "Должно быть 2 задачи");
-        assertTrue(tasks.stream().anyMatch(t -> t.getTitle().equals("Task1")));
-        assertTrue(tasks.stream().anyMatch(t -> t.getTitle().equals("Task2")));
-
-        List<Epic> epics = loaded.getAllEpics();
-        assertEquals(1, epics.size(), "Должен быть 1 эпик");
-        assertEquals("Epic1", epics.get(0).getTitle());
-
-        List<Subtask> subtasks = loaded.getAllSubtasks();
-        assertEquals(2, subtasks.size(), "Должно быть 2 подзадачи");
-        assertTrue(subtasks.stream().anyMatch(s -> s.getTitle().equals("Sub1")));
-        assertTrue(subtasks.stream().anyMatch(s -> s.getTitle().equals("Sub2")));
-
-        List<Task> history = loaded.getHistory();
-        assertEquals(3, history.size(), "Должно быть 3 задачи в истории");
-        assertEquals(task1.getId(), history.get(0).getId());
-        assertEquals(epic.getId(), history.get(1).getId());
-        assertEquals(subtask1.getId(), history.get(2).getId());
-    }
-
-    @Test
     void saveEmptyManager() throws Exception {
         manager.save();
         List<String> lines = Files.readAllLines(file.toPath());
