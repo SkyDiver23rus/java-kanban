@@ -34,13 +34,12 @@ public class FileBackedTaskManagerTest {
 
     @Test
     void saveAndLoadTasks() {
-        // Уникальные интервалы для задач
         Task task1 = new Task("Task1", "Desc1", Status.NEW.name());
         task1.setStartTime(LocalDateTime.of(2023, 1, 1, 10, 0));
         task1.setDuration(Duration.ofMinutes(60));
 
         Task task2 = new Task("Task2", "Desc2", Status.IN_PROGRESS.name());
-        task2.setStartTime(LocalDateTime.of(2023, 1, 1, 11, 30));
+        task2.setStartTime(LocalDateTime.of(2023, 1, 1, 11, 2));
         task2.setDuration(Duration.ofMinutes(30));
 
         manager.createTask(task1);
@@ -49,13 +48,12 @@ public class FileBackedTaskManagerTest {
         Epic epic = new Epic("Epic1", "EpicDesc");
         manager.createEpic(epic);
 
-        // Уникальные интервалы для подзадач эпика
         Subtask subtask1 = new Subtask("Sub1", "SubDesc1", Status.NEW.name(), epic.getId());
         subtask1.setStartTime(LocalDateTime.of(2023, 1, 1, 12, 0));
         subtask1.setDuration(Duration.ofMinutes(40));
 
         Subtask subtask2 = new Subtask("Sub2", "SubDesc2", Status.DONE.name(), epic.getId());
-        subtask2.setStartTime(LocalDateTime.of(2023, 1, 1, 13, 0));
+        subtask2.setStartTime(LocalDateTime.of(2023, 1, 1, 12, 42));
         subtask2.setDuration(Duration.ofMinutes(20));
 
         manager.createSubtask(subtask1);
@@ -132,7 +130,7 @@ public class FileBackedTaskManagerTest {
         manager.createSubtask(sub1);
 
         Subtask sub2 = new Subtask("Sub2", "Desc", Status.NEW.name(), epic.getId());
-        sub2.setStartTime(LocalDateTime.of(2023, 2, 1, 11, 0));
+        sub2.setStartTime(LocalDateTime.of(2023, 2, 1, 10, 22));
         sub2.setDuration(Duration.ofMinutes(20));
         manager.createSubtask(sub2);
 
@@ -159,7 +157,7 @@ public class FileBackedTaskManagerTest {
         manager.createSubtask(sub1);
 
         Subtask sub2 = new Subtask("Sub2", "Desc", Status.DONE.name(), epic.getId());
-        sub2.setStartTime(LocalDateTime.of(2023, 3, 1, 11, 0));
+        sub2.setStartTime(LocalDateTime.of(2023, 3, 1, 10, 22));
         sub2.setDuration(Duration.ofMinutes(20));
         manager.createSubtask(sub2);
 
