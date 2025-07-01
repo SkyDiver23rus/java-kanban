@@ -62,7 +62,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         tasks.clear();
         epics.clear();
         subtasks.clear();
-        historyManager.getHistory().clear();
+        // Очистка истории у HistoryManager
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
             reader.readLine(); // пропускаем заголовок
             String line;
@@ -83,22 +83,24 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                 } else if (task.getType() == TaskType.SUBTASK) {
                     subtasks.put(id, (Subtask) task);
                     allTasks.put(id, task);
-                    int epicId = ((Subtask) task).getEpicId();
-                    Epic epic = epics.get(epicId);
-                    if (epic != null) {
-                        epic.addSubtask((Subtask) task);
-                    }
                 }
                 idCounter = Math.max(idCounter, id + 1);
+            }
+
+            for (Epic epic : epics.values()) {
+                updateEpicStatus(epic.getId());
             }
             // читаем историю
             String historyLine = reader.readLine();
             if (historyLine != null && !historyLine.isEmpty()) {
                 for (String idStr : historyLine.split(",")) {
                     int id = Integer.parseInt(idStr);
-                    Task task = allTasks.get(id);
-                    if (task != null) {
-                        historyManager.add(task);
+                    if (tasks.containsKey(id)) {
+                        historyManager.add(tasks.get(id));
+                    } else if (epics.containsKey(id)) {
+                        historyManager.add(epics.get(id));
+                    } else if (subtasks.containsKey(id)) {
+                        historyManager.add(subtasks.get(id));
                     }
                 }
             }
@@ -138,9 +140,10 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     }
 
     @Override
-    public void createSubtask(Subtask subtask) {
-        super.createSubtask(subtask);
+    public Subtask createSubtask(Subtask subtask) {
+        Subtask result = super.createSubtask(subtask);
         save();
+        return result;
     }
 
     @Override
