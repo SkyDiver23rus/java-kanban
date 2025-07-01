@@ -33,6 +33,37 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     public static FileBackedTaskManager loadFromFile(File file) {
         FileBackedTaskManager manager = new FileBackedTaskManager(file);
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            String line = reader.readLine();
+
+            while ((line = reader.readLine()) != null && !line.isBlank()) {
+                Task task = CSVTaskConverter.fromString(line);
+                if (task != null) {
+                    switch (task.getType()) {
+                        case TASK -> manager.tasks.put(task.getId(), task);
+                        case EPIC -> manager.epics.put(task.getId(), (Epic) task);
+                        case SUBTASK -> manager.subtasks.put(task.getId(), (Subtask) task);
+                    }
+                }
+            }
+
+            String historyLine = reader.readLine();
+            if (historyLine != null && !historyLine.isBlank()) {
+                for (String idStr : historyLine.split(",")) {
+                    if (!idStr.isBlank()) {
+                        int id = Integer.parseInt(idStr.trim());
+                        Task task = manager.tasks.get(id);
+                        if (task == null) task = manager.epics.get(id);
+                        if (task == null) task = manager.subtasks.get(id);
+                        if (task != null) manager.historyManager.add(task);
+                    }
+                }
+            }
+        } catch (IOException e) {
+            throw new ManagerSaveException("Ошибка при загрузке задач", e);
+        }
+
         return manager;
     }
 
