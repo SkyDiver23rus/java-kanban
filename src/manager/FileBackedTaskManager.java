@@ -109,7 +109,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                 }
             }
         } catch (FileNotFoundException e) {
-
+            System.out.println("Файл не найден.");
         } catch (IOException e) {
             throw new ManagerSaveException("Ошибка при загрузке задач", e);
         }
