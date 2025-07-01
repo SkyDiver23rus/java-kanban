@@ -3,17 +3,18 @@ package manager;
 import model.Epic;
 import model.Subtask;
 import model.Task;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import model.Status;
+import org.junit.jupiter.api.*;
 
 import java.io.File;
 import java.nio.file.Files;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class FileBackedTaskManagerTest {
+public class FileBackedTaskManagerTest {
     private FileBackedTaskManager manager;
     private File file;
 
@@ -33,7 +34,7 @@ class FileBackedTaskManagerTest {
 
     @Test
     void saveAndLoadTasks() {
-        // Создаем задачи
+        // Уникальные интервалы для задач
         Task task1 = new Task("Task1", "Desc1", Status.NEW.name());
         task1.setStartTime(LocalDateTime.of(2023, 1, 1, 10, 0));
         task1.setDuration(Duration.ofMinutes(60));
@@ -88,80 +89,81 @@ class FileBackedTaskManagerTest {
         assertEquals(epic.getId(), history.get(1).getId());
         assertEquals(subtask1.getId(), history.get(2).getId());
     }
-}
 
-@Test
-void testEpicStatusAllNewAndAllDone() {
-    Epic epic = new Epic("EpicTest", "Desc");
-    manager.createEpic(epic);
+    @Test
+    void saveEmptyManager() throws Exception {
+        manager.save();
+        List<String> lines = Files.readAllLines(file.toPath());
+        // Первая строка — это заголовок
+        assertTrue(lines.get(0).contains("id,type,name,status,description,epic"));
+        // После заголовка должна быть пустая строка (разделитель между задачами и историей)
+        assertTrue(lines.size() >= 1);
+    }
 
-    Subtask sub1 = new Subtask("Sub1", "Desc", Status.NEW.name(), epic.getId());
-    sub1.setStartTime(LocalDateTime.of(2023, 2, 1, 10, 0));
-    sub1.setDuration(Duration.ofMinutes(20));
-    manager.createSubtask(sub1);
+    @Test
+    void loadFromFileWithNoHistory() throws Exception {
+        Task task = new Task("Task", "Desc", Status.NEW.name());
+        task.setStartTime(LocalDateTime.of(2023, 1, 2, 10, 0));
+        task.setDuration(Duration.ofMinutes(10));
+        manager.createTask(task);
+        // Очищаем историю
+        manager.getHistory().clear();
+        manager.save();
 
-    Subtask sub2 = new Subtask("Sub2", "Desc", Status.NEW.name(), epic.getId());
-    sub2.setStartTime(LocalDateTime.of(2023, 2, 1, 11, 0));
-    sub2.setDuration(Duration.ofMinutes(20));
-    manager.createSubtask(sub2);
+        FileBackedTaskManager loaded = FileBackedTaskManager.loadFromFile(file);
+        List<Task> loadedHistory = loaded.getHistory();
+        assertTrue(loadedHistory.isEmpty(), "История после загрузки должна быть пустой");
+    }
 
-    Epic loadedEpic = manager.getEpicById(epic.getId());
-    assertEquals(Status.NEW, loadedEpic.getStatus(), "Если все NEW, эпик NEW");
+    @Test
+    void testCreateManager() {
+        FileBackedTaskManager manager = new FileBackedTaskManager(new File("tasks.csv"));
+        assertNotNull(manager);
+    }
 
-    sub1.setStatus(Status.DONE);
-    sub2.setStatus(Status.DONE);
-    manager.updateSubtask(sub1);
-    manager.updateSubtask(sub2);
+    @Test
+    void testEpicStatusAllNewAndAllDone() {
+        Epic epic = new Epic("EpicTest", "Desc");
+        manager.createEpic(epic);
 
-    loadedEpic = manager.getEpicById(epic.getId());
-    assertEquals(Status.DONE, loadedEpic.getStatus(), "Если все DONE, эпик DONE");
-}
+        Subtask sub1 = new Subtask("Sub1", "Desc", Status.NEW.name(), epic.getId());
+        sub1.setStartTime(LocalDateTime.of(2023, 2, 1, 10, 0));
+        sub1.setDuration(Duration.ofMinutes(20));
+        manager.createSubtask(sub1);
 
-@Test
-void testEpicStatusNewAndDoneMix() {
-    Epic epic = new Epic("EpicMix", "Desc");
-    manager.createEpic(epic);
+        Subtask sub2 = new Subtask("Sub2", "Desc", Status.NEW.name(), epic.getId());
+        sub2.setStartTime(LocalDateTime.of(2023, 2, 1, 11, 0));
+        sub2.setDuration(Duration.ofMinutes(20));
+        manager.createSubtask(sub2);
 
-    Subtask sub1 = new Subtask("Sub1", "Desc", Status.NEW.name(), epic.getId());
-    sub1.setStartTime(LocalDateTime.of(2023, 3, 1, 10, 0));
-    sub1.setDuration(Duration.ofMinutes(20));
-    manager.createSubtask(sub1);
+        Epic loadedEpic = manager.getEpicById(epic.getId());
+        assertEquals(Status.NEW, loadedEpic.getStatus(), "Если все NEW, эпик NEW");
 
-    Subtask sub2 = new Subtask("Sub2", "Desc", Status.DONE.name(), epic.getId());
-    sub2.setStartTime(LocalDateTime.of(2023, 3, 1, 11, 0));
-    sub2.setDuration(Duration.ofMinutes(20));
-    manager.createSubtask(sub2);
+        sub1.setStatus(Status.DONE);
+        sub2.setStatus(Status.DONE);
+        manager.updateSubtask(sub1);
+        manager.updateSubtask(sub2);
 
-    Epic loadedEpic = manager.getEpicById(epic.getId());
-    assertEquals(Status.IN_PROGRESS, loadedEpic.getStatus(), "NEW + DONE = IN_PROGRESS");
-}
+        loadedEpic = manager.getEpicById(epic.getId());
+        assertEquals(Status.DONE, loadedEpic.getStatus(), "Если все DONE, эпик DONE");
+    }
 
-@Test
-void saveEmptyManager() throws Exception {
-    manager.save();
-    List<String> lines = Files.readAllLines(file.toPath());
-    // Первая строка — это заголовок
-    assertTrue(lines.get(0).contains("id,type,name,status,description,epic"));
-    // После заголовка должна быть пустая строка
-    assertTrue(lines.size() >= 1);
-}
+    @Test
+    void testEpicStatusNewAndDoneMix() {
+        Epic epic = new Epic("EpicMix", "Desc");
+        manager.createEpic(epic);
 
-@Test
-void loadFromFileWithNoHistory() throws Exception {
-    Task task = new Task("Task", "Desc", "NEW");
-    manager.createTask(task);
-    // Очищаем историю
-    manager.getHistory().clear();
-    manager.save();
+        Subtask sub1 = new Subtask("Sub1", "Desc", Status.NEW.name(), epic.getId());
+        sub1.setStartTime(LocalDateTime.of(2023, 3, 1, 10, 0));
+        sub1.setDuration(Duration.ofMinutes(20));
+        manager.createSubtask(sub1);
 
-    FileBackedTaskManager loaded = FileBackedTaskManager.loadFromFile(file);
-    List<Task> loadedHistory = loaded.getHistory();
-    assertTrue(loadedHistory.isEmpty(), "История после загрузки должна быть пустой");
-}
+        Subtask sub2 = new Subtask("Sub2", "Desc", Status.DONE.name(), epic.getId());
+        sub2.setStartTime(LocalDateTime.of(2023, 3, 1, 11, 0));
+        sub2.setDuration(Duration.ofMinutes(20));
+        manager.createSubtask(sub2);
 
-@Test
-void testCreateManager() {
-    FileBackedTaskManager manager = new FileBackedTaskManager(new File("tasks.csv"));
-    assertNotNull(manager);
-}
+        Epic loadedEpic = manager.getEpicById(epic.getId());
+        assertEquals(Status.IN_PROGRESS, loadedEpic.getStatus(), "NEW + DONE = IN_PROGRESS");
+    }
 }
