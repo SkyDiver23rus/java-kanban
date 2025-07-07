@@ -7,7 +7,7 @@ public class Epic extends Task {
     private final List<Integer> subtaskIds;
 
     public Epic(String title, String description) {
-        super(title, description);
+        super(title, description, "NEW"); // добавили статус
         subtaskIds = new ArrayList<>();
     }
 
@@ -33,5 +33,10 @@ public class Epic extends Task {
     // Удаление всех сабтасков из этого эпика
     public void removeAllSubtask() {
         subtaskIds.clear();
+    }
+
+    @Override
+    public TaskType getType() {
+        return TaskType.EPIC;
     }
 }

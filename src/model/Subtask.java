@@ -3,8 +3,9 @@ package model;
 public class Subtask extends Task {
     private int epicId;
 
-    public Subtask(String title, String description, int epicId) {
-        super(title, description);
+    public Subtask(String title, String description, String status, int epicId) {
+        super(title, description, status);
+        this.setStatus(Status.valueOf(status));
         this.epicId = epicId;
     }
 
@@ -13,15 +14,19 @@ public class Subtask extends Task {
         return epicId;
     }
 
-    // Реализация не используется.
+
     // Но вдруг мы решим переместить сабтаск в другой Эпик ))
-    public Subtask setEpicId(int epicId) {
+    public void setEpicId(int epicId) {
         this.epicId = epicId;
-        return this;
     }
 
     @Override
     public String toString() {
         return "SubTask(id=" + id + ",of=Epic(" + getEpicId() + "))";
+    }
+
+    @Override
+    public TaskType getType() {
+        return TaskType.SUBTASK;
     }
 }
