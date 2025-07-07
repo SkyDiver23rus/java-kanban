@@ -1,8 +1,9 @@
 package manager;
 
 public class Managers {
+
     public static TaskManager getDefault() {
-        return new InMemoryTaskManager();
+        return new FileBackedTaskManager(); // теперь возвращает FileBackedTaskManager с дефолтным файлом
     }
 
     public static HistoryManager getDefaultHistory() {

@@ -4,13 +4,17 @@ import java.util.Objects;
 
 public class Task {
     protected int id;
-    private String title;
-    private String description;
+    private final String title;
+    private final String description;
     private Status status;
 
-    public Task(String title, String description) {
+    public Task(String title, String description, String status) {
         this.title = title;
         this.description = description;
+    }
+
+    public TaskType getType() {
+        return TaskType.TASK;
     }
 
     public int getId() {
@@ -54,4 +58,9 @@ public class Task {
     public int hashCode() {
         return Objects.hash(id);
     }
+
+    public String getName() {
+        return title;
+    }
+
 }
