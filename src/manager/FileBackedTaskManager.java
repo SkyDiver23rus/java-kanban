@@ -17,28 +17,31 @@ import java.util.List;
 public class FileBackedTaskManager extends InMemoryTaskManager {
     protected final File file;
 
+    protected int nextId = 1;
+
     public FileBackedTaskManager(File file) {
         this.file = file;
-
     }
 
     public FileBackedTaskManager() {
         this(new File("tasks.csv"));
     }
 
-
     public static FileBackedTaskManager loadFromFile(File file) {
         FileBackedTaskManager manager = new FileBackedTaskManager(file);
+        int maxId = 0;
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-            reader.readLine();
+            reader.readLine(); // skip header
             String line;
 
             while ((line = reader.readLine()) != null && !line.isBlank()) {
                 Task task = CSVTaskConverter.fromString(line);
+                int id = task.getId();
+                if (id > maxId) maxId = id; // отслеживаем максимальный id
                 switch (task.getType()) {
-                    case TASK -> manager.tasks.put(task.getId(), task);
-                    case EPIC -> manager.epics.put(task.getId(), (Epic) task);
-                    case SUBTASK -> manager.subtasks.put(task.getId(), (Subtask) task);
+                    case TASK -> manager.tasks.put(id, task);
+                    case EPIC -> manager.epics.put(id, (Epic) task);
+                    case SUBTASK -> manager.subtasks.put(id, (Subtask) task);
                 }
             }
 
@@ -55,8 +58,10 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         } catch (IOException e) {
             throw new ManagerSaveException("Ошибка при загрузке задач", e);
         }
+        manager.nextId = maxId + 1; // устанавливаем следующий id
         return manager;
     }
+
 
     // Сохранение всех задач и истории
     protected void save() {
