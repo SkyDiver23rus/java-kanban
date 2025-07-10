@@ -25,6 +25,10 @@ public class Epic extends Task {
         subtask.setEpicId(id);
     }
 
+    public void setEndTime(LocalDateTime endTime) {
+        this.endTime = endTime;
+    }
+
     public void removeSubtask(int subtaskId) {
         subtaskIds.remove((Integer) subtaskId);
     }
@@ -38,30 +42,6 @@ public class Epic extends Task {
         return TaskType.EPIC;
     }
 
-
-    public void calculateFields(List<Subtask> subtasks) {
-        if (subtasks.isEmpty()) {
-            setDuration(Duration.ZERO);
-            setStartTime(null);
-            return;
-        }
-        Duration total = Duration.ZERO;
-        LocalDateTime minStart = null;
-        LocalDateTime maxEnd = null;
-        for (Subtask s : subtasks) {
-            if (s.getStartTime() != null && s.getDuration() != null) {
-                total = total.plus(s.getDuration());
-                LocalDateTime subStart = s.getStartTime();
-                LocalDateTime subEnd = s.getEndTime();
-                if (minStart == null || subStart.isBefore(minStart)) minStart = subStart;
-                if (maxEnd == null || (subEnd != null && subEnd.isAfter(maxEnd))) maxEnd = subEnd;
-            }
-        }
-        setDuration(total);
-        setStartTime(minStart);
-
-        this.endTime = maxEnd;
-    }
 
     private LocalDateTime endTime;
 
