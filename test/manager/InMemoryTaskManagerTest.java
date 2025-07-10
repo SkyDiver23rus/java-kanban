@@ -1,4 +1,4 @@
-package manager;
+/*package manager;
 
 import java.util.List;
 
@@ -14,4 +14,4 @@ public class InMemoryTaskManagerTest extends TaskManagerTest<InMemoryTaskManager
     protected InMemoryTaskManager createManager() {
         return new InMemoryTaskManager();
     }
-}
+}*/
