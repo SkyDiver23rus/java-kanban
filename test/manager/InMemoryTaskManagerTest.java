@@ -19,7 +19,7 @@ public class InMemoryTaskManagerTest {
 
     @Test
     void addNewTask() {
-        Task task = new Task("Тест", "Тест описание");
+        Task task = new Task("Тест", "Тест описание", "NEW");
         task.setStatus(Status.NEW);
         final Task savedTask = taskManager.createTask(task);
 
