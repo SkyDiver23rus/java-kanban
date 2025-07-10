@@ -14,17 +14,16 @@ public class InMemoryHistoryManagerTest {
 
     @BeforeEach
     void setUp() {
-
         historyManager = Managers.getDefaultHistory();
     }
 
     @Test
     void testNoDuplicatesAndOrderInHistory() {
-        Task task1 = new Task("Таск1", "Описание1");
+        Task task1 = new Task("Таск1", "Описание1", "NEW");
         task1.setId(1);
-        Task task2 = new Task("Таск2", "Описание2");
+        Task task2 = new Task("Таск2", "Описание2", "NEW");
         task2.setId(2);
-        Task task3 = new Task("Таск3", "Описание3");
+        Task task3 = new Task("Таск3", "Описание3", "NEW");
         task3.setId(3);
 
         historyManager.add(task1);
@@ -42,9 +41,9 @@ public class InMemoryHistoryManagerTest {
 
     @Test
     void testRemoveFromHistory() {
-        Task task1 = new Task("Таск1", "Описание1");
+        Task task1 = new Task("Таск1", "Описание1", "NEW");
         task1.setId(1);
-        Task task2 = new Task("Таск2", "Описание2");
+        Task task2 = new Task("Таск2", "Описание2", "NEW");
         task2.setId(2);
 
         historyManager.add(task1);
@@ -58,11 +57,11 @@ public class InMemoryHistoryManagerTest {
 
     @Test
     void testRemoveMiddleNode() {
-        Task t1 = new Task("Таск1", "Описание1");
+        Task t1 = new Task("Таск1", "Описание1", "NEW");
         t1.setId(1);
-        Task t2 = new Task("Таск2", "Описание2");
+        Task t2 = new Task("Таск2", "Описание2", "NEW");
         t2.setId(2);
-        Task t3 = new Task("Таск3", "Описание3");
+        Task t3 = new Task("Таск3", "Описание3", "NEW");
         t3.setId(3);
 
         historyManager.add(t1);
@@ -78,11 +77,11 @@ public class InMemoryHistoryManagerTest {
 
     @Test
     void testRemoveHeadAndTail() {
-        Task t1 = new Task("Таск1", "Описание1");
+        Task t1 = new Task("Таск1", "Описание1", "NEW");
         t1.setId(1);
-        Task t2 = new Task("Таск2", "Описание2");
+        Task t2 = new Task("Таск2", "Описание2", "NEW");
         t2.setId(2);
-        Task t3 = new Task("Таск3", "Описание3");
+        Task t3 = new Task("Таск3", "Описание3", "NEW");
         t3.setId(3);
 
         historyManager.add(t1);

@@ -8,8 +8,8 @@ public class TaskTest {
 
     @Test
     void testTaskEqualsId() {
-        Task task1 = new Task("Задача 1", "Описание 1");
-        Task task2 = new Task("Задача 2", "Описание 2");
+        Task task1 = new Task("Задача 1", "Описание 1", "NEW");
+        Task task2 = new Task("Задача 2", "Описание 2", "IN_PROGRESS");
 
         task1.setId(1);
         task2.setId(1);
@@ -23,9 +23,9 @@ public class TaskTest {
 
     @Test
     void testTaskNotEqualsNull() {
-        Task task = new Task("Задача", "Описание");
+        Task task = new Task("Задача", "Описание", "NEW");
         task.setId(1);
 
-        assertNotEquals(task, null, "Задача не null.");
+        assertNotEquals(task, null, "Задача не должна быть равна null.");
     }
 }
