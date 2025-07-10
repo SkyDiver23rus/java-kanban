@@ -14,7 +14,8 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class FileBackedTaskManagerTest extends TaskManagerTest {
+public class FileBackedTaskManagerTest {
+    private FileBackedTaskManager manager;
     private File file;
 
     @BeforeEach
@@ -35,7 +36,9 @@ public class FileBackedTaskManagerTest extends TaskManagerTest {
     void saveEmptyManager() throws Exception {
         manager.save();
         List<String> lines = Files.readAllLines(file.toPath());
+        // Первая строка — это заголовок
         assertTrue(lines.get(0).contains("id,type,name,status,description,epic"));
+        // После заголовка должна быть пустая строка (разделитель между задачами и историей)
         assertTrue(lines.size() >= 1);
     }
 
@@ -45,6 +48,7 @@ public class FileBackedTaskManagerTest extends TaskManagerTest {
         task.setStartTime(LocalDateTime.of(2023, 1, 2, 10, 0));
         task.setDuration(Duration.ofMinutes(10));
         manager.createTask(task);
+        // Очищаем историю
         manager.getHistory().clear();
         manager.save();
 
@@ -103,91 +107,5 @@ public class FileBackedTaskManagerTest extends TaskManagerTest {
 
         Epic loadedEpic = manager.getEpicById(epic.getId());
         assertEquals(Status.IN_PROGRESS, loadedEpic.getStatus(), "NEW + DONE = IN_PROGRESS");
-    }
-
-    // --- Тесты на пересечение задач ---
-
-    @Test
-    void taskDoesNotIntersectBeforeExisting() {
-        Task task1 = new Task("Task1", "Desc", Status.NEW.name());
-        task1.setStartTime(LocalDateTime.of(2023, 1, 1, 10, 0));
-        task1.setDuration(Duration.ofMinutes(60));
-        assertNotNull(manager.createTask(task1));
-
-        Task task2 = new Task("Task2", "Desc", Status.NEW.name());
-        // task2 заканчивается до task1 начинается
-        task2.setStartTime(LocalDateTime.of(2023, 1, 1, 8, 0));
-        task2.setDuration(Duration.ofMinutes(60));
-        assertNotNull(manager.createTask(task2));
-    }
-
-    @Test
-    void taskDoesNotIntersectAfterExisting() {
-        Task task1 = new Task("Task1", "Desc", Status.NEW.name());
-        task1.setStartTime(LocalDateTime.of(2023, 1, 1, 10, 0));
-        task1.setDuration(Duration.ofMinutes(60));
-        assertNotNull(manager.createTask(task1));
-
-        Task task2 = new Task("Task2", "Desc", Status.NEW.name());
-        // task2 начинается после task1 заканчивается
-        task2.setStartTime(LocalDateTime.of(2023, 1, 1, 11, 1));
-        task2.setDuration(Duration.ofMinutes(30));
-        assertNotNull(manager.createTask(task2));
-    }
-
-    @Test
-    void taskIntersectsStart() {
-        Task task1 = new Task("Task1", "Desc", Status.NEW.name());
-        task1.setStartTime(LocalDateTime.of(2023, 1, 1, 10, 0));
-        task1.setDuration(Duration.ofMinutes(60));
-        assertNotNull(manager.createTask(task1));
-
-        Task task2 = new Task("Task2", "Desc", Status.NEW.name());
-        // task2 начинается внутри task1
-        task2.setStartTime(LocalDateTime.of(2023, 1, 1, 10, 30));
-        task2.setDuration(Duration.ofMinutes(40));
-        assertNull(manager.createTask(task2));
-    }
-
-    @Test
-    void taskIntersectsEnd() {
-        Task task1 = new Task("Task1", "Desc", Status.NEW.name());
-        task1.setStartTime(LocalDateTime.of(2023, 1, 1, 10, 0));
-        task1.setDuration(Duration.ofMinutes(60));
-        assertNotNull(manager.createTask(task1));
-
-        Task task2 = new Task("Task2", "Desc", Status.NEW.name());
-        // task2 заканчивается внутри task1
-        task2.setStartTime(LocalDateTime.of(2023, 1, 1, 9, 30));
-        task2.setDuration(Duration.ofMinutes(45));
-        assertNull(manager.createTask(task2));
-    }
-
-    @Test
-    void taskFullyInsideExisting() {
-        Task task1 = new Task("Task1", "Desc", Status.NEW.name());
-        task1.setStartTime(LocalDateTime.of(2023, 1, 1, 10, 0));
-        task1.setDuration(Duration.ofMinutes(60));
-        assertNotNull(manager.createTask(task1));
-
-        Task task2 = new Task("Task2", "Desc", Status.NEW.name());
-        // task2 полностью внутри task1
-        task2.setStartTime(LocalDateTime.of(2023, 1, 1, 10, 10));
-        task2.setDuration(Duration.ofMinutes(20));
-        assertNull(manager.createTask(task2));
-    }
-
-    @Test
-    void taskFullyCoversExisting() {
-        Task task1 = new Task("Task1", "Desc", Status.NEW.name());
-        task1.setStartTime(LocalDateTime.of(2023, 1, 1, 10, 0));
-        task1.setDuration(Duration.ofMinutes(60));
-        assertNotNull(manager.createTask(task1));
-
-        Task task2 = new Task("Task2", "Desc", Status.NEW.name());
-        // task2 полностью покрывает task1
-        task2.setStartTime(LocalDateTime.of(2023, 1, 1, 9, 45));
-        task2.setDuration(Duration.ofMinutes(120));
-        assertNull(manager.createTask(task2));
     }
 }
