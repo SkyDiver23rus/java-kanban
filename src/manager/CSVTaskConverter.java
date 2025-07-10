@@ -2,9 +2,13 @@ package manager;
 
 import model.*;
 
-public class CSVTaskConverter {
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
-    // Преобразовать задачу в CSV-строку
+public class CSVTaskConverter {
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+
     public static String toString(Task task) {
         StringBuilder sb = new StringBuilder();
         sb.append(task.getId()).append(",");
@@ -12,15 +16,16 @@ public class CSVTaskConverter {
         sb.append(task.getTitle()).append(",");
         sb.append(task.getStatus()).append(",");
         sb.append(task.getDescription()).append(",");
+        sb.append(task.getDuration() != null ? task.getDuration().toMinutes() : "").append(",");
+        sb.append(task.getStartTime() != null ? task.getStartTime().format(FORMATTER) : "");
         if (task.getType() == TaskType.SUBTASK) {
-            sb.append(((Subtask) task).getEpicId());
+            sb.append(",").append(((Subtask) task).getEpicId());
         } else {
-            sb.append("");
+            sb.append(",");
         }
         return sb.toString();
     }
 
-    // Преобразовать CSV-строку в задачу
     public static Task fromString(String value) {
         String[] fields = value.split(",", -1);
         int id = Integer.parseInt(fields[0]);
@@ -29,7 +34,20 @@ public class CSVTaskConverter {
         String statusStr = fields[3];
         String description = fields[4];
 
-        // Если status пустой или равен "null", используем по умолчанию
+        Duration duration = Duration.ZERO;
+        LocalDateTime startTime = null;
+        int epicId = -1;
+
+        if (fields.length > 5 && !fields[5].isEmpty()) {
+            duration = Duration.ofMinutes(Long.parseLong(fields[5]));
+        }
+        if (fields.length > 6 && !fields[6].isEmpty()) {
+            startTime = LocalDateTime.parse(fields[6]);
+        }
+        if (fields.length > 7 && !fields[7].isEmpty()) {
+            epicId = Integer.parseInt(fields[7]);
+        }
+
         Status status;
         if (statusStr == null || statusStr.isEmpty() || statusStr.equalsIgnoreCase("null")) {
             status = Status.NEW;
@@ -42,17 +60,22 @@ public class CSVTaskConverter {
                 Task task = new Task(title, description, status.name());
                 task.setId(id);
                 task.setStatus(status);
+                task.setDuration(duration);
+                task.setStartTime(startTime);
                 return task;
             case EPIC:
                 Epic epic = new Epic(title, description);
                 epic.setId(id);
                 epic.setStatus(status);
+                epic.setDuration(duration);
+                epic.setStartTime(startTime);
                 return epic;
             case SUBTASK:
-                int epicId = Integer.parseInt(fields[5]);
                 Subtask subtask = new Subtask(title, description, status.name(), epicId);
                 subtask.setId(id);
                 subtask.setStatus(status);
+                subtask.setDuration(duration);
+                subtask.setStartTime(startTime);
                 return subtask;
             default:
                 throw new IllegalArgumentException("Unknown task type: " + type);

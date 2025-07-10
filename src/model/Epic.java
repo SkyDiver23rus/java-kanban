@@ -1,5 +1,6 @@
 package model;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -7,7 +8,7 @@ public class Epic extends Task {
     private final List<Integer> subtaskIds;
 
     public Epic(String title, String description) {
-        super(title, description, "NEW"); // добавили статус
+        super(title, description, "NEW");
         subtaskIds = new ArrayList<>();
     }
 
@@ -23,14 +24,14 @@ public class Epic extends Task {
         subtask.setEpicId(id);
     }
 
-    // Удаление сабтаска из этого эпика по id
-    public void removeSubtask(int subtaskId) {
-        if (subtaskIds.contains(subtaskId)) {
-            subtaskIds.remove((Integer) subtaskId);
-        }
+    public void setEndTime(LocalDateTime endTime) {
+        this.endTime = endTime;
     }
 
-    // Удаление всех сабтасков из этого эпика
+    public void removeSubtask(int subtaskId) {
+        subtaskIds.remove((Integer) subtaskId);
+    }
+
     public void removeAllSubtask() {
         subtaskIds.clear();
     }
@@ -38,5 +39,13 @@ public class Epic extends Task {
     @Override
     public TaskType getType() {
         return TaskType.EPIC;
+    }
+
+
+    private LocalDateTime endTime;
+
+    @Override
+    public LocalDateTime getEndTime() {
+        return endTime;
     }
 }
