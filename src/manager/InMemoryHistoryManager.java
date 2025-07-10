@@ -24,6 +24,13 @@ public class InMemoryHistoryManager implements HistoryManager {
     private final HashMap<Integer, Node> nodeMap = new HashMap<>();
 
     @Override
+    public void clear() {
+        nodeMap.clear();
+        head = null;
+        tail = null;
+    }
+
+    @Override
     public void add(Task task) {
         if (task == null) return;
 
