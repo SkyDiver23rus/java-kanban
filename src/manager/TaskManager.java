@@ -9,7 +9,7 @@ import java.util.List;
 public interface TaskManager {
     Task createTask(Task task);
 
-    void createSubtask(Subtask subtask);
+    Subtask createSubtask(Subtask subtask);
 
     Epic createEpic(Epic epic);
 
@@ -46,5 +46,7 @@ public interface TaskManager {
     void updateSubtask(Subtask subtask);
 
     void updateEpic(Epic epic);
+
+    List<Task> getPrioritizedTasks();
 
 }
