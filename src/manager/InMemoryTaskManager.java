@@ -26,7 +26,7 @@ public class InMemoryTaskManager implements TaskManager {
         return idCounter++;
     }
 
-    private boolean checkTaskIntersection(Task newTask, int ignoreId) {
+    protected boolean checkTaskIntersection(Task newTask, int ignoreId) {
         if (newTask.getStartTime() == null || newTask.getDuration() == null) return false;
         for (Task task : prioritizedTasks) {
             if (task.getId() == ignoreId) continue; // игнорируем обновляемую задачу

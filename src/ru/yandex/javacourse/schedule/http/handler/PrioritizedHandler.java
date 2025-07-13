@@ -1,0 +1,34 @@
+package ru.yandex.javacourse.schedule.http.handler;
+
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
+import manager.TaskManager;
+import model.Task;
+import com.google.gson.Gson;
+
+import java.io.IOException;
+import java.util.List;
+
+public class PrioritizedHandler extends BaseHttpHandler implements HttpHandler {
+    private final TaskManager manager;
+    private final Gson gson = new Gson();
+
+    public PrioritizedHandler(TaskManager manager) {
+        this.manager = manager;
+    }
+
+    @Override
+    public void handle(HttpExchange exchange) throws IOException {
+        try {
+            String method = exchange.getRequestMethod();
+            if ("GET".equals(method)) {
+                List<Task> prioritized = manager.getPrioritizedTasks();
+                sendText(exchange, gson.toJson(prioritized));
+            } else {
+                sendNotFound(exchange, "Метод не поддерживается");
+            }
+        } catch (Exception e) {
+            sendServerError(exchange, "Ошибка сервера: " + e.getMessage());
+        }
+    }
+}
