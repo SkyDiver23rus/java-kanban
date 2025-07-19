@@ -11,10 +11,11 @@ import java.util.List;
 
 public class HistoryHandler extends BaseHttpHandler implements HttpHandler {
     private final TaskManager manager;
-    private final Gson gson = new Gson();
+    private final Gson gson;
 
     public HistoryHandler(TaskManager manager, Gson gson) {
         this.manager = manager;
+        this.gson = gson;
     }
 
     @Override
