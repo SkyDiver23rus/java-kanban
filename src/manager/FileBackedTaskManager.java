@@ -103,9 +103,13 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     //  Переопределение методов для автосохранения
     @Override
     public Task createTask(Task task) {
-        Task t = super.createTask(task);
-        save();
-        return t;
+        if (checkTaskIntersection(task, -1)) {
+            throw new IllegalArgumentException("Task intersects with existing tasks");
+        }
+        task.setId(generateNextId());
+        tasks.put(task.getId(), task);
+        prioritizedTasks.add(task);
+        return task;
     }
 
     @Override
@@ -175,8 +179,8 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         super.removeAllEpic();
         save();
     }
-
-    public static void main(String[] args) {
+}
+   /* public static void main(String[] args) {
         // создаём файл
         File file = new File("tasks.csv");
 
@@ -226,4 +230,4 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
             System.out.println(t);
         }
     }
-}
+} */

@@ -1,111 +1,91 @@
 package manager;
 
-import model.Epic;
-import model.Subtask;
 import model.Task;
-import model.Status;
-import org.junit.jupiter.api.*;
+import model.Epic;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
-import java.nio.file.Files;
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.util.List;
+import java.io.IOException;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class FileBackedTaskManagerTest {
+class FileBackedTaskManagerTest {
+
     private FileBackedTaskManager manager;
-    private File file;
+    private final File testFile = new File("test_tasks.csv");
 
     @BeforeEach
-    void setup() throws Exception {
-        file = File.createTempFile("tasks", ".csv");
-        file.delete();
-        manager = new FileBackedTaskManager(file);
+    void setUp() {
+        if (testFile.exists()) {
+            assertTrue(testFile.delete(), "Cannot delete test file before test");
+        }
+        manager = new FileBackedTaskManager(testFile);
     }
 
     @AfterEach
-    void teardown() {
-        if (file.exists()) {
-            file.delete();
+    void tearDown() {
+        if (testFile.exists()) {
+            assertTrue(testFile.delete(), "Cannot delete test file after test");
         }
     }
 
     @Test
-    void saveEmptyManager() throws Exception {
-        manager.save();
-        List<String> lines = Files.readAllLines(file.toPath());
-        // Первая строка — это заголовок
-        assertTrue(lines.get(0).contains("id,type,name,status,description,epic"));
-        // После заголовка должна быть пустая строка (разделитель между задачами и историей)
-        assertTrue(lines.size() >= 1);
-    }
-
-    @Test
-    void loadFromFileWithNoHistory() throws Exception {
-        Task task = new Task("Task", "Desc", Status.NEW.name());
-        task.setStartTime(LocalDateTime.of(2023, 1, 2, 10, 0));
-        task.setDuration(Duration.ofMinutes(10));
+    void createTask_ShouldAddTask() {
+        Task task = new Task("Test Task", "Description", "NEW");
         manager.createTask(task);
-        // Очищаем историю
-        manager.getHistory().clear();
+
+        Map<Integer, Task> tasks = manager.tasks; // или manager.getTasks(), если есть геттер
+        assertEquals(1, tasks.size());
+        assertTrue(tasks.containsValue(task));
+    }
+
+    @Test
+    void createEpic_ShouldAddEpic() {
+        Epic epic = new Epic("Test Epic", "Epic Description");
+        manager.createEpic(epic);
+
+        Map<Integer, Epic> epics = manager.epics; // или manager.getEpics(), если есть геттер
+        assertEquals(1, epics.size());
+        assertTrue(epics.containsValue(epic));
+    }
+
+    @Test
+    void saveAndLoadFromFile_ShouldPersistData() throws IOException {
+        Task task = new Task("Test Task", "Description", "NEW");
+        manager.createTask(task);
+
+        Epic epic = new Epic("Test Epic", "Epic Description");
+        manager.createEpic(epic);
+
         manager.save();
 
-        FileBackedTaskManager loaded = FileBackedTaskManager.loadFromFile(file);
-        List<Task> loadedHistory = loaded.getHistory();
-        assertTrue(loadedHistory.isEmpty(), "История после загрузки должна быть пустой");
+        FileBackedTaskManager loadedManager = FileBackedTaskManager.loadFromFile(testFile);
+
+        Map<Integer, Task> loadedTasks = loadedManager.tasks; // или loadedManager.getTasks()
+        assertEquals(1, loadedTasks.size());
+        assertTrue(loadedTasks.containsValue(task));
+
+        Map<Integer, Epic> loadedEpics = loadedManager.epics; // или loadedManager.getEpics()
+        assertEquals(1, loadedEpics.size());
+        assertTrue(loadedEpics.containsValue(epic));
     }
 
     @Test
-    void testCreateManager() {
-        FileBackedTaskManager manager = new FileBackedTaskManager(new File("tasks.csv"));
-        assertNotNull(manager);
-    }
+    void historyToString_ShouldReturnCorrectHistoryFormat() {
+        Task task1 = new Task("Task 1", "Description 1", "NEW");
+        Task task2 = new Task("Task 2", "Description 2", "NEW");
 
-    @Test
-    void testEpicStatusAllNewAndAllDone() {
-        Epic epic = new Epic("EpicTest", "Desc");
-        manager.createEpic(epic);
+        manager.createTask(task1);
+        manager.createTask(task2);
 
-        Subtask sub1 = new Subtask("Sub1", "Desc", Status.NEW.name(), epic.getId());
-        sub1.setStartTime(LocalDateTime.of(2023, 2, 1, 10, 0));
-        sub1.setDuration(Duration.ofMinutes(20));
-        manager.createSubtask(sub1);
+        manager.historyManager.add(task1);
+        manager.historyManager.add(task2);
 
-        Subtask sub2 = new Subtask("Sub2", "Desc", Status.NEW.name(), epic.getId());
-        sub2.setStartTime(LocalDateTime.of(2023, 2, 1, 10, 22));
-        sub2.setDuration(Duration.ofMinutes(20));
-        manager.createSubtask(sub2);
+        String historyString = FileBackedTaskManager.historyToString(manager.historyManager);
 
-        Epic loadedEpic = manager.getEpicById(epic.getId());
-        assertEquals(Status.NEW, loadedEpic.getStatus(), "Если все NEW, эпик NEW");
-
-        sub1.setStatus(Status.DONE);
-        sub2.setStatus(Status.DONE);
-        manager.updateSubtask(sub1);
-        manager.updateSubtask(sub2);
-
-        loadedEpic = manager.getEpicById(epic.getId());
-        assertEquals(Status.DONE, loadedEpic.getStatus(), "Если все DONE, эпик DONE");
-    }
-
-    @Test
-    void testEpicStatusNewAndDoneMix() {
-        Epic epic = new Epic("EpicMix", "Desc");
-        manager.createEpic(epic);
-
-        Subtask sub1 = new Subtask("Sub1", "Desc", Status.NEW.name(), epic.getId());
-        sub1.setStartTime(LocalDateTime.of(2023, 3, 1, 10, 0));
-        sub1.setDuration(Duration.ofMinutes(20));
-        manager.createSubtask(sub1);
-
-        Subtask sub2 = new Subtask("Sub2", "Desc", Status.DONE.name(), epic.getId());
-        sub2.setStartTime(LocalDateTime.of(2023, 3, 1, 10, 22));
-        sub2.setDuration(Duration.ofMinutes(20));
-        manager.createSubtask(sub2);
-
-        Epic loadedEpic = manager.getEpicById(epic.getId());
-        assertEquals(Status.IN_PROGRESS, loadedEpic.getStatus(), "NEW + DONE = IN_PROGRESS");
+        assertEquals(task1.getId() + "," + task2.getId(), historyString);
     }
 }

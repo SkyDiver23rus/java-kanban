@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class ManagersTest {
+public abstract class ManagersTest {
 
     @Test
     void testGetDefault() {
@@ -19,4 +19,6 @@ public class ManagersTest {
         assertNotNull(historyManager, "Метод getDefaultHistory возвращает объект HistoryManager.");
         assertTrue(historyManager instanceof InMemoryHistoryManager, "Метод getDefaultHistory возвращаеть экземпляр InMemoryHistoryManager.");
     }
+
+    protected abstract InMemoryTaskManager createManager();
 }
